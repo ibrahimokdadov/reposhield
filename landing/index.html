@@ -857,6 +857,10 @@
 
         <div class="hero-stats">
           <div class="stat">
+            <div class="stat-num">npx</div>
+            <div class="stat-label">one command install</div>
+          </div>
+          <div class="stat">
             <div class="stat-num">30+</div>
             <div class="stat-label">Secret patterns</div>
           </div>
@@ -1113,15 +1117,30 @@
   <section id="install">
     <div class="section-label">Get started</div>
     <h2>Up in under<br/>60 seconds.</h2>
-    <p class="section-sub">Docker is the fastest path. Manual setup takes an extra minute.</p>
+    <p class="section-sub">Run instantly with npx — no install needed. Or use Docker / manual setup.</p>
 
     <div class="install-box fade-up">
       <div class="install-tabs">
-        <div class="itab active" data-tab="docker">Docker</div>
+        <div class="itab active" data-tab="npx">npx</div>
+        <div class="itab" data-tab="docker">Docker</div>
         <div class="itab" data-tab="manual">Manual</div>
       </div>
 
-      <div class="install-content active" id="tab-docker">
+      <div class="install-content active" id="tab-npx">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode('npx')">Copy</button>
+          <pre id="code-npx"><span class="code-comment"># Run instantly — no install needed</span>
+<span class="code-cmd">npx reposhield</span> scan https://github.com/owner/repo
+
+<span class="code-comment"># With AI deep analysis (optional)</span>
+<span class="code-cmd">npx reposhield</span> scan https://github.com/owner/repo --ai-key sk-...
+
+<span class="code-comment"># Start the web UI locally</span>
+<span class="code-cmd">npx reposhield</span> start</pre>
+        </div>
+      </div>
+
+      <div class="install-content" id="tab-docker">
         <div class="code-block">
           <button class="copy-btn" onclick="copyCode('docker')">Copy</button>
           <pre id="code-docker"><span class="code-comment"># Clone and run</span>
@@ -1129,8 +1148,8 @@
 <span class="code-cmd">cd</span> reposhield
 <span class="code-cmd">docker-compose up</span>
 
-<span class="code-comment"># Open in browser</span>
-open http://localhost:3000</pre>
+<span class="code-comment"># Or use npx (no Docker needed):</span>
+<span class="code-cmd">npx reposhield</span> start</pre>
         </div>
       </div>
 
