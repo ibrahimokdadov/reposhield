@@ -1,0 +1,21 @@
+{
+  "name": "reposhield",
+  "version": "1.0.0",
+  "description": "AI-powered security vulnerability scanner for Git repositories",
+  "bin": {
+    "reposhield": "./bin/reposhield.js"
+  },
+  "scripts": {},
+  "keywords": ["security", "vulnerability", "scanner", "git", "secrets", "owasp", "dependency"],
+  "author": "ibrahim@whhite.com",
+  "license": "MIT",
+  "homepage": "https://securitychecker.whhite.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ibrahimokdadov/reposhield"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
