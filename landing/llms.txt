@@ -1,0 +1,29 @@
+# RepoShield
+
+> AI-powered security vulnerability scanner for Git repositories.
+
+RepoShield is an open-source tool that scans any public or private Git repository for security vulnerabilities. It runs four scanners entirely on your machine — no API key required to start.
+
+The secrets scanner uses 30+ compiled regex patterns to find hardcoded API keys, tokens, passwords, and private keys across all file types. It covers AWS, GitHub, Stripe, OpenAI, Anthropic, JWT, PEM private keys, and database connection strings, redacting actual values in output.
+
+The dependency scanner queries the OSV (Open Source Vulnerabilities) database for every package in your project. It supports npm, pip, RubyGems, Cargo, Maven, NuGet, Composer, and Go modules. CVSS scores are mapped to Critical/High/Medium/Low severity.
+
+The static analysis scanner implements 30+ rules covering the OWASP Top 10 across Python, JavaScript, TypeScript, Java, PHP, Ruby, Go, C/C++, and C#. Rules include SQL injection, XSS, command injection, path traversal, SSRF, XXE, insecure deserialization, and weak cryptography.
+
+The git history scanner walks up to 200 commits in the repository to find secrets that were committed and later deleted. Even if a file has been removed, the secret remains accessible in git objects — this scanner surfaces those historical leaks.
+
+Optionally, users can add an AI API key to unlock a fifth scanner: AI deep analysis. This sends the most security-relevant source files to GPT-4o, Claude Opus, or Gemini 1.5 Pro for context-aware review that catches business logic flaws, IDOR, authorization bypasses, and race conditions that pattern-matching cannot detect.
+
+The web interface is built with React and Vite. The backend is Python FastAPI. Real-time progress updates are delivered via WebSocket. Scan results can be exported as JSON for CI/CD integration.
+
+## Key pages
+
+- /: Landing page and feature overview
+
+## Contact
+
+ibrahim@whhite.com
+
+## Source
+
+https://github.com/ibrahimokdadov/reposhield

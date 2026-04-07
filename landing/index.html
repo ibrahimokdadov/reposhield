@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RepoShield — AI-Powered Security Vulnerability Scanner</title>
+  <meta name="description" content="Scan any Git repository for hardcoded secrets, vulnerable dependencies, OWASP Top 10 issues, and git history leaks. No API key needed." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://securitychecker.whhite.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://securitychecker.whhite.com/" />
+  <meta property="og:title" content="RepoShield — AI-Powered Security Vulnerability Scanner" />
+  <meta property="og:description" content="Scan any Git repository for hardcoded secrets, vulnerable dependencies, OWASP Top 10 issues, and git history leaks. No API key needed." />
+  <meta property="og:image" content="https://securitychecker.whhite.com/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="RepoShield — AI-Powered Security Vulnerability Scanner" />
+  <meta name="twitter:description" content="Scan any Git repository for hardcoded secrets, vulnerable dependencies, OWASP Top 10 issues, and git history leaks. No API key needed." />
+  <meta name="twitter:image" content="https://securitychecker.whhite.com/og-image.png" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "RepoShield",
+    "description": "AI-powered security vulnerability scanner for Git repositories",
+    "url": "https://securitychecker.whhite.com",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "email": "ibrahim@whhite.com" }
+  }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #080c0e;
+      --surface:  #0d1117;
+      --surface2: #111820;
+      --border:   #1e2d3d;
+      --green:    #00ff88;
+      --green-dim:#00cc6a;
+      --green-glow: rgba(0,255,136,0.15);
+      --green-glow2: rgba(0,255,136,0.06);
+      --red:      #ff4455;
+      --orange:   #ff8c00;
+      --yellow:   #ffd700;
+      --blue:     #4488ff;
+      --text:     #d4dce8;
+      --dim:      #5a6a7e;
+      --mono:     'Share Tech Mono', monospace;
+      --sans:     'Outfit', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 48px;
+      background: rgba(8,12,14,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 18px;
+      color: var(--green);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo svg { width: 22px; height: 22px; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--green); }
+
+    .btn-nav {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bg) !important;
+      background: var(--green);
+      padding: 8px 18px;
+      border-radius: 3px;
+      transition: box-shadow 0.2s, opacity 0.2s !important;
+    }
+
+    .btn-nav:hover {
+      box-shadow: 0 0 16px rgba(0,255,136,0.4);
+      opacity: 0.9;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      padding: 120px 48px 80px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      border: 1px solid rgba(0,255,136,0.3);
+      padding: 6px 14px;
+      border-radius: 2px;
+      margin-bottom: 28px;
+      background: var(--green-glow2);
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(40px, 5vw, 68px);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 span { color: var(--green); }
+
+    .hero-desc {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--dim);
+      line-height: 1.7;
+      max-width: 520px;
+      margin-bottom: 40px;
+    }
+
+    .hero-desc strong { color: var(--text); font-weight: 500; }
+
+    .hero-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--green);
+      padding: 14px 28px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: box-shadow 0.25s, transform 0.15s;
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 28px rgba(0,255,136,0.5), 0 0 60px rgba(0,255,136,0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      border: 1px solid var(--border);
+      padding: 14px 24px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat { }
+
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 28px;
+      color: var(--green);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── TERMINAL ── */
+    .terminal-wrap {
+      position: relative;
+    }
+
+    .terminal-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(135deg, rgba(0,255,136,0.2), transparent 60%);
+      border-radius: 8px;
+      z-index: -1;
+    }
+
+    .terminal {
+      background: #050709;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,255,136,0.05);
+    }
+
+    .term-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #0a0e12;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-r { background: #ff5f56; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #27c93f; }
+
+    .term-title {
+      flex: 1;
+      text-align: center;
+      color: var(--dim);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    .term-body {
+      padding: 20px 20px 24px;
+      min-height: 400px;
+    }
+
+    .term-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 3px;
+      opacity: 0;
+      transform: translateY(4px);
+      animation: lineIn 0.2s forwards;
+    }
+
+    @keyframes lineIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .term-prompt { color: var(--green); user-select: none; }
+    .term-cmd { color: #e2e8f0; }
+    .term-info { color: var(--dim); padding-left: 16px; }
+    .term-finding { padding-left: 16px; }
+
+    .sev {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 2px;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .sev-c { background: rgba(255,68,85,0.2); color: #ff4455; border: 1px solid rgba(255,68,85,0.4); }
+    .sev-h { background: rgba(255,140,0,0.2); color: #ff8c00; border: 1px solid rgba(255,140,0,0.4); }
+    .sev-m { background: rgba(255,215,0,0.2); color: #ffd700; border: 1px solid rgba(255,215,0,0.4); }
+    .sev-l { background: rgba(68,136,255,0.2); color: #4488ff; border: 1px solid rgba(68,136,255,0.4); }
+
+    .term-summary {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: rgba(0,255,136,0.05);
+      border: 1px solid rgba(0,255,136,0.15);
+      border-radius: 4px;
+      opacity: 0;
+      animation: lineIn 0.3s 5.2s forwards;
+    }
+
+    .term-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .term-summary-label { color: var(--dim); font-size: 12px; }
+
+    .term-counts {
+      display: flex;
+      gap: 16px;
+    }
+
+    .tc { font-size: 12px; }
+    .tc-c { color: #ff4455; }
+    .tc-h { color: #ff8c00; }
+    .tc-m { color: #ffd700; }
+    .tc-l { color: #4488ff; }
+
+    /* ── NO-KEY BANNER ── */
+    .no-key-banner {
+      background: linear-gradient(90deg, rgba(0,255,136,0.08) 0%, rgba(0,255,136,0.03) 100%);
+      border-top: 1px solid rgba(0,255,136,0.15);
+      border-bottom: 1px solid rgba(0,255,136,0.15);
+      padding: 20px 48px;
+    }
+
+    .no-key-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .no-key-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .no-key-icon {
+      width: 36px; height: 36px;
+      background: rgba(0,255,136,0.1);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .no-key-left strong {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--green);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .no-key-left p {
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    .no-key-left p em { color: var(--text); font-style: normal; }
+
+    .no-key-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 5px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── SECTION LAYOUT ── */
+    section {
+      position: relative;
+      padding: 96px 48px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-family: var(--mono);
+      font-size: clamp(28px, 3.5vw, 44px);
+      font-weight: 400;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--dim);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 56px;
+    }
+
+    /* ── SCANNER CARDS ── */
+    .scanners-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .scanner-card {
+      background: var(--surface);
+      padding: 36px 32px;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .scanner-card:hover { background: var(--surface2); }
+
+    .scanner-card.ai-card {
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(0,255,136,0.03) 100%);
+      border: none;
+    }
+
+    .sc-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .sc-icon {
+      width: 44px; height: 44px;
+      background: rgba(0,255,136,0.06);
+      border: 1px solid rgba(0,255,136,0.15);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sc-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 2px;
+      letter-spacing: 0.06em;
+    }
+
+    .badge-free {
+      background: rgba(0,255,136,0.1);
+      color: var(--green);
+      border: 1px solid rgba(0,255,136,0.25);
+    }
+
+    .badge-ai {
+      background: rgba(68,136,255,0.1);
+      color: #4488ff;
+      border: 1px solid rgba(68,136,255,0.25);
+    }
+
+    .scanner-card h3 {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .scanner-card p {
+      font-size: 14px;
+      color: var(--dim);
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    .sc-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sc-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 9px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .step {
+      background: var(--surface);
+      padding: 40px 32px;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 56px;
+      font-weight: 400;
+      color: rgba(0,255,136,0.08);
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .step h3 {
+      font-family: var(--mono);
+      font-size: 15px;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .step p {
+      font-size: 14px;
+      color: var(--dim);
+      line-height: 1.65;
+    }
+
+    /* ── SEVERITY TABLE ── */
+    .sev-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .sev-table th {
+      text-align: left;
+      padding: 12px 16px;
+      color: var(--dim);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sev-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(30,45,61,0.5);
+      vertical-align: top;
+    }
+
+    .sev-table tr:last-child td { border-bottom: none; }
+
+    .sev-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── INSTALL ── */
+    .install-box {
+      background: #050709;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .install-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #0a0e12;
+    }
+
+    .itab {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      padding: 12px 20px;
+      color: var(--dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      user-select: none;
+    }
+
+    .itab.active {
+      color: var(--green);
+      border-bottom-color: var(--green);
+    }
+
+    .install-content {
+      padding: 24px 28px;
+      display: none;
+    }
+
+    .install-content.active { display: block; }
+
+    .code-block {
+      position: relative;
+    }
+
+    pre {
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
+    .code-comment { color: var(--dim); }
+    .code-cmd { color: var(--green); }
+
+    .copy-btn {
+      position: absolute;
+      top: 0; right: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .copy-btn:hover { color: var(--green); border-color: var(--green); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 16px;
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--green); }
+
+    .footer-copy {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    /* ── DIVIDER ── */
+    .full-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 14px 24px; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 48px; }
+      section { padding: 72px 24px; }
+      .scanners-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .no-key-banner { padding: 20px 24px; }
+      .no-key-inner { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; gap: 20px; padding: 32px 24px; }
+    }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.25C16.5 22.15 20 17.25 20 12V6L12 2z"/>
+      </svg>
+      reposhield
+    </a>
+    <ul class="nav-links">
+      <li><a href="#scanners">Scanners</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="http://localhost:5174" class="btn-nav">Launch App →</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div style="max-width:1280px;margin:0 auto;padding:0 48px;">
+    <div class="hero" style="padding-left:0;padding-right:0;max-width:100%;">
+
+      <div class="hero-left">
+        <div class="hero-badge">Security scanner · Open source</div>
+
+        <h1>
+          Find every<br/>
+          <span>vulnerability</span><br/>
+          before they do.
+        </h1>
+
+        <p class="hero-desc">
+          RepoShield scans any Git repository for <strong>hardcoded secrets</strong>,
+          <strong>vulnerable dependencies</strong>, <strong>OWASP Top 10 issues</strong>,
+          and leaks buried in commit history — in minutes, with no configuration.
+        </p>
+
+        <div class="hero-cta">
+          <a href="http://localhost:5174" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
+            Start scanning
+          </a>
+          <a href="https://github.com/ibrahimokdadov/reposhield" class="btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-num">30+</div>
+            <div class="stat-label">Secret patterns</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">8</div>
+            <div class="stat-label">Package ecosystems</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">0</div>
+            <div class="stat-label">API keys needed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TERMINAL -->
+      <div class="terminal-wrap">
+        <div class="terminal" id="terminal">
+          <div class="term-header">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+            <div class="term-title">reposhield — scan</div>
+          </div>
+          <div class="term-body" id="term-body">
+            <!-- lines injected by JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NO-KEY BANNER -->
+  <div class="no-key-banner">
+    <div class="no-key-inner">
+      <div class="no-key-left">
+        <div class="no-key-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <strong>No API key required to start</strong>
+          <p>All four core scanners run <em>entirely on your machine</em>. Add an AI key later for GPT-4o / Claude / Gemini deep analysis — totally optional.</p>
+        </div>
+      </div>
+      <div class="no-key-chips">
+        <div class="chip">Local-only</div>
+        <div class="chip">No data sent</div>
+        <div class="chip">Free forever</div>
+        <div class="chip">AI optional</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCANNERS -->
+  <section id="scanners">
+    <div class="section-label">What gets scanned</div>
+    <h2>Four scanners.<br/>One command.</h2>
+    <p class="section-sub">Each scanner targets a different attack surface. Together they cover the full OWASP Top 10 and more.</p>
+
+    <div class="scanners-grid fade-up">
+
+      <div class="scanner-card">
+        <div class="sc-header">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <span class="sc-badge badge-free">Free · Local</span>
+        </div>
+        <h3>Secrets Detection</h3>
+        <p>30+ compiled regex patterns catch hardcoded API keys, tokens, private keys, and passwords before they ship. Matches are redacted in output — only the first 4 chars are shown.</p>
+        <div class="sc-tags">
+          <span class="sc-tag">AWS keys</span>
+          <span class="sc-tag">GitHub tokens</span>
+          <span class="sc-tag">Stripe</span>
+          <span class="sc-tag">OpenAI / Anthropic</span>
+          <span class="sc-tag">JWT</span>
+          <span class="sc-tag">Private keys (PEM)</span>
+          <span class="sc-tag">DB passwords</span>
+        </div>
+      </div>
+
+      <div class="scanner-card">
+        <div class="sc-header">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          </div>
+          <span class="sc-badge badge-free">Free · OSV</span>
+        </div>
+        <h3>Dependency Scanning</h3>
+        <p>Queries the open-source OSV vulnerability database for every package in your project. Maps CVSS scores to Critical/High/Medium/Low severity automatically.</p>
+        <div class="sc-tags">
+          <span class="sc-tag">npm / yarn</span>
+          <span class="sc-tag">pip / Poetry</span>
+          <span class="sc-tag">RubyGems</span>
+          <span class="sc-tag">Cargo</span>
+          <span class="sc-tag">Maven</span>
+          <span class="sc-tag">NuGet</span>
+          <span class="sc-tag">Composer</span>
+          <span class="sc-tag">Go modules</span>
+        </div>
+      </div>
+
+      <div class="scanner-card">
+        <div class="sc-header">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </div>
+          <span class="sc-badge badge-free">Free · Local</span>
+        </div>
+        <h3>Static Code Analysis</h3>
+        <p>Pattern-based detection across 8 languages. Covers the full OWASP Top 10 with 30+ rules including language-specific variants and false-positive suppression.</p>
+        <div class="sc-tags">
+          <span class="sc-tag">SQL injection</span>
+          <span class="sc-tag">XSS</span>
+          <span class="sc-tag">Command injection</span>
+          <span class="sc-tag">Path traversal</span>
+          <span class="sc-tag">SSRF</span>
+          <span class="sc-tag">XXE</span>
+          <span class="sc-tag">Insecure crypto</span>
+          <span class="sc-tag">Open redirect</span>
+        </div>
+      </div>
+
+      <div class="scanner-card">
+        <div class="sc-header">
+          <div class="sc-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <span class="sc-badge badge-free">Free · Local</span>
+        </div>
+        <h3>Git History Scanner</h3>
+        <p>Walks up to 200 commits to find secrets that were committed and later deleted. Even if the file is gone, the secret lives on in git objects — this scanner finds it.</p>
+        <div class="sc-tags">
+          <span class="sc-tag">All commits</span>
+          <span class="sc-tag">Deleted files</span>
+          <span class="sc-tag">Force-pushes safe</span>
+          <span class="sc-tag">CWE-312</span>
+        </div>
+      </div>
+
+      <div class="scanner-card ai-card" style="grid-column: span 2;">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:rgba(68,136,255,0.08);border-color:rgba(68,136,255,0.2);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4488ff" stroke-width="1.8">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <span class="sc-badge badge-ai">Optional · API key</span>
+        </div>
+        <h3>AI Deep Analysis</h3>
+        <p style="max-width:620px;">Sends your most security-relevant files to GPT-4o, Claude Opus, or Gemini 1.5 Pro for context-aware review. Catches logic bugs, IDOR, authorization flaws, and race conditions that patterns miss. Auto-selects the provider from your API key format — no config needed.</p>
+        <div class="sc-tags">
+          <span class="sc-tag">OpenAI GPT-4o</span>
+          <span class="sc-tag">Anthropic Claude</span>
+          <span class="sc-tag">Google Gemini</span>
+          <span class="sc-tag">Business logic flaws</span>
+          <span class="sc-tag">IDOR</span>
+          <span class="sc-tag">Auth bypasses</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="full-divider" />
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="section-label">How it works</div>
+    <h2>Three steps.<br/>Full coverage.</h2>
+    <p class="section-sub">No configuration files. No plugins. Paste a URL and scan.</p>
+
+    <div class="steps fade-up">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Paste any repo URL</h3>
+        <p>GitHub, GitLab, Bitbucket, or any public git URL. Private repos work too — just ensure the host is reachable. Local paths are also supported.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>All scanners run locally</h3>
+        <p>Secrets, dependencies, static analysis, and git history scanners run in parallel on your machine. Nothing is sent to any external server unless you add an AI key.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Get a full report</h3>
+        <p>Findings ranked by severity. Each includes the file path, line number, code snippet, CWE ID, OWASP category, and a specific fix suggestion. Export as JSON for CI/CD.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="full-divider" />
+
+  <!-- SEVERITY TABLE -->
+  <section>
+    <div class="section-label">Severity levels</div>
+    <h2>Every finding, ranked.</h2>
+    <p class="section-sub">Based on CVSS scoring and exploitability — not guesswork.</p>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;" class="fade-up">
+      <table class="sev-table">
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>CVSS range</th>
+            <th>Examples</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="sev sev-c">CRITICAL</span></td>
+            <td style="color:var(--dim);">9.0 – 10.0</td>
+            <td style="color:var(--dim);">Hardcoded AWS key, RCE via command injection, exposed private key</td>
+            <td style="color:#ff4455;">Fix immediately</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-h">HIGH</span></td>
+            <td style="color:var(--dim);">7.0 – 8.9</td>
+            <td style="color:var(--dim);">SQL injection, XSS, insecure deserialization, path traversal</td>
+            <td style="color:#ff8c00;">Fix before shipping</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-m">MEDIUM</span></td>
+            <td style="color:var(--dim);">4.0 – 6.9</td>
+            <td style="color:var(--dim);">Weak crypto (MD5/SHA1), missing security headers, open redirect</td>
+            <td style="color:#ffd700;">Plan to fix</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-l">LOW</span></td>
+            <td style="color:var(--dim);">0.1 – 3.9</td>
+            <td style="color:var(--dim);">Debug mode on, verbose error messages, outdated minor versions</td>
+            <td style="color:#4488ff;">Track and monitor</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="full-divider" />
+
+  <!-- INSTALL -->
+  <section id="install">
+    <div class="section-label">Get started</div>
+    <h2>Up in under<br/>60 seconds.</h2>
+    <p class="section-sub">Docker is the fastest path. Manual setup takes an extra minute.</p>
+
+    <div class="install-box fade-up">
+      <div class="install-tabs">
+        <div class="itab active" data-tab="docker">Docker</div>
+        <div class="itab" data-tab="manual">Manual</div>
+      </div>
+
+      <div class="install-content active" id="tab-docker">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode('docker')">Copy</button>
+          <pre id="code-docker"><span class="code-comment"># Clone and run</span>
+<span class="code-cmd">git clone</span> https://github.com/ibrahimokdadov/reposhield.git
+<span class="code-cmd">cd</span> reposhield
+<span class="code-cmd">docker-compose up</span>
+
+<span class="code-comment"># Open in browser</span>
+open http://localhost:3000</pre>
+        </div>
+      </div>
+
+      <div class="install-content" id="tab-manual">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode('manual')">Copy</button>
+          <pre id="code-manual"><span class="code-comment"># Backend (Python 3.9+)</span>
+<span class="code-cmd">cd</span> backend
+<span class="code-cmd">pip install</span> -r requirements.txt
+<span class="code-cmd">python -m uvicorn</span> main:app --port 8000
+
+<span class="code-comment"># Frontend (Node 18+) — in a new terminal</span>
+<span class="code-cmd">cd</span> frontend
+<span class="code-cmd">npm install && npm run dev</span>
+
+<span class="code-comment"># Open in browser</span>
+open http://localhost:5173</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="/" class="footer-logo">reposhield</a>
+    <ul class="footer-links">
+      <li><a href="https://github.com/ibrahimokdadov/reposhield">GitHub</a></li>
+      <li><a href="#scanners">Scanners</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="http://localhost:5174">Launch app</a></li>
+    </ul>
+    <div class="footer-copy">MIT License · 2024</div>
+  </footer>
+
+  <script>
+    // ── TERMINAL ANIMATION ──
+    const lines = [
+      { delay: 200,  type: 'cmd',   text: 'reposhield scan https://github.com/example/webapp' },
+      { delay: 800,  type: 'info',  text: '→ Cloning repository...' },
+      { delay: 1400, type: 'info',  text: '→ Running secrets scanner...' },
+      { delay: 1900, type: 'find',  sev: 'c', text: 'src/config.py:14 — AWS Secret Access Key' },
+      { delay: 2300, type: 'find',  sev: 'h', text: 'src/config.py:22 — Hardcoded database password' },
+      { delay: 2700, type: 'info',  text: '→ Scanning dependencies (npm + pip)...' },
+      { delay: 3100, type: 'find',  sev: 'h', text: 'package.json — lodash@4.17.4 CVE-2021-23337' },
+      { delay: 3400, type: 'find',  sev: 'm', text: 'requirements.txt — PyYAML@3.13 CVE-2017-18342' },
+      { delay: 3700, type: 'info',  text: '→ Running static analysis (OWASP)...' },
+      { delay: 4100, type: 'find',  sev: 'c', text: 'src/routes/user.py:88 — Command injection (shell=True)' },
+      { delay: 4500, type: 'find',  sev: 'h', text: 'src/db.py:34 — SQL injection via f-string' },
+      { delay: 4900, type: 'info',  text: '→ Scanning git history (last 200 commits)...' },
+      { delay: 5100, type: 'find',  sev: 'c', text: 'HISTORY — Stripe secret key (commit a3f2d1, deleted)' },
+      { delay: 5300, type: 'summary' },
+    ];
+
+    const sevMap = { c: 'CRITICAL', h: 'HIGH', m: 'MEDIUM', l: 'LOW' };
+
+    function addLine(line) {
+      const body = document.getElementById('term-body');
+      const el = document.createElement('div');
+      el.className = 'term-line';
+      el.style.animationDelay = '0ms';
+
+      if (line.type === 'cmd') {
+        el.innerHTML = `<span class="term-prompt">$</span><span class="term-cmd"> ${line.text}</span>`;
+      } else if (line.type === 'info') {
+        el.innerHTML = `<span class="term-info">${line.text}</span>`;
+      } else if (line.type === 'find') {
+        el.innerHTML = `<span class="term-finding"><span class="sev sev-${line.sev}">${sevMap[line.sev]}</span>${line.text}</span>`;
+      } else if (line.type === 'summary') {
+        const sum = document.createElement('div');
+        sum.className = 'term-summary';
+        sum.innerHTML = `
+          <div class="term-summary-row">
+            <span class="term-summary-label">Scan complete — 7 findings</span>
+            <div class="term-counts">
+              <span class="tc tc-c">3 critical</span>
+              <span class="tc tc-h">2 high</span>
+              <span class="tc tc-m">1 medium</span>
+              <span class="tc tc-l">0 low</span>
+            </div>
+          </div>`;
+        body.appendChild(sum);
+        return;
+      }
+
+      body.appendChild(el);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    lines.forEach(line => {
+      setTimeout(() => addLine(line), line.delay);
+    });
+
+    // Restart animation every 8s
+    setInterval(() => {
+      const body = document.getElementById('term-body');
+      body.innerHTML = '';
+      lines.forEach(line => {
+        setTimeout(() => addLine(line), line.delay);
+      });
+    }, 9000);
+
+    // ── TABS ──
+    document.querySelectorAll('.itab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.itab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.install-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ── COPY ──
+    function copyCode(id) {
+      const el = document.getElementById('code-' + id);
+      navigator.clipboard.writeText(el.innerText).catch(() => {});
+      const btn = el.parentElement.querySelector('.copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    }
+
+    // ── SCROLL ANIMATIONS ──
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
