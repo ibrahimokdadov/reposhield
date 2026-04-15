@@ -1,6 +1,6 @@
-# RepoShield — AI-Powered Security Vulnerability Scanner
+# RepoShield: AI-powered security vulnerability scanner
 
-> Scan any public or private Git repository for secrets, vulnerable dependencies, insecure code patterns, and buried git-history leaks — then get a deep AI analysis powered by GPT-4, Claude, or Gemini.
+> Scan any Git repo for secrets, vulnerable dependencies, insecure code patterns, and buried git-history leaks. Optionally run it through GPT-4, Claude, or Gemini for a deeper read.
 
 **Live demo:** [securitychecker.whhite.com](https://securitychecker.whhite.com) &nbsp;|&nbsp; **Install:** `npx reposhield`
 
@@ -10,27 +10,27 @@
 
 ## Features
 
-- **Secrets Detection** — regex + entropy-based scanning for hardcoded API keys, tokens, passwords, private keys, and connection strings across all file types
-- **Dependency Scanning** — checks `package.json`, `requirements.txt`, `Gemfile.lock`, `Cargo.toml`, and more against the [OSV vulnerability database](https://osv.dev)
-- **Static Analysis** — OWASP Top 10 pattern matching: SQL injection, XSS, command injection, path traversal, insecure deserialization, and more
-- **Git History Scanning** — walks every commit in the repository history to surface secrets that were added and later removed (still present in git objects)
-- **AI Deep Analysis** — sends selected source files to GPT-4 / Claude / Gemini for context-aware, human-readable vulnerability analysis
-- **Multi-Provider AI Support** — bring your own API key for OpenAI, Anthropic, or Google Gemini; keys can be entered in the UI without touching config files
-- **Real-time Progress** — WebSocket-powered live updates as each scanner runs
-- **Severity Levels** — findings ranked as Critical, High, Medium, Low, and Info with confidence scores
-- **Export Reports** — download scan results as JSON for CI/CD integration or audit trails
+- **Secrets detection:** regex + entropy-based scanning for hardcoded API keys, tokens, passwords, private keys, and connection strings across all file types
+- **Dependency scanning:** checks `package.json`, `requirements.txt`, `Gemfile.lock`, `Cargo.toml`, and more against the [OSV vulnerability database](https://osv.dev)
+- **Static analysis:** OWASP Top 10 pattern matching for SQL injection, XSS, command injection, path traversal, insecure deserialization, and more
+- **Git history scanning:** walks every commit to surface secrets that were added and later removed (still present in git objects)
+- **AI deep analysis:** sends selected source files to GPT-4, Claude, or Gemini for context-aware vulnerability analysis
+- **Multi-provider AI:** bring your own key for OpenAI, Anthropic, or Google Gemini; enter it in the UI, no config files needed
+- **Real-time progress:** WebSocket-powered live updates as each scanner runs
+- **Severity levels:** findings ranked Critical, High, Medium, Low, and Info with confidence scores
+- **Export:** download scan results as JSON for CI/CD pipelines or audit trails
 
 ---
 
-## Quick Start
+## Quick start
 
-### npx (Zero install)
+### npx (zero install)
 
 ```bash
 npx reposhield scan https://github.com/owner/repo
 ```
 
-No install needed — runs directly via npm. Optionally pass an AI key:
+No install needed. Runs directly via npm. Optionally pass an AI key:
 
 ```bash
 npx reposhield scan https://github.com/owner/repo --ai-key sk-...
@@ -38,7 +38,7 @@ npx reposhield scan https://github.com/owner/repo --ai-key sk-...
 
 ---
 
-### Docker (Recommended)
+### Docker (recommended)
 
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose).
 
@@ -69,11 +69,11 @@ docker-compose down
 
 ---
 
-### Manual Setup
+### Manual setup
 
 #### Prerequisites
 
-| Tool | Minimum Version |
+| Tool | Minimum version |
 |------|----------------|
 | Python | 3.9+ |
 | Node.js | 18+ |
@@ -95,8 +95,7 @@ pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The API will be available at **http://localhost:8000**.  
-Interactive API docs: **http://localhost:8000/docs**
+The API will be at **http://localhost:8000**. Interactive docs at **http://localhost:8000/docs**.
 
 #### Frontend
 
@@ -106,7 +105,7 @@ npm install
 npm run dev
 ```
 
-The UI will be available at **http://localhost:5173** and will proxy `/api` and `/ws` to the backend automatically.
+The UI will be at **http://localhost:5173** and will proxy `/api` and `/ws` to the backend.
 
 #### One-command startup scripts
 
@@ -118,21 +117,21 @@ chmod +x start.sh && ./start.sh
 start.bat
 ```
 
-Both scripts check prerequisites, set up the virtual environment, install all dependencies, and start both services with log output written to `.logs/`.
+Both scripts check prerequisites, set up the virtual environment, install all dependencies, and start both services. Logs go to `.logs/`.
 
 ---
 
-## How It Works
+## How it works
 
-RepoShield clones the target repository into an isolated temp directory, then runs five parallel analysis passes:
+RepoShield clones the target repository into an isolated temp directory, then runs five analysis passes:
 
-### 1. Secrets Scanner
+### 1. Secrets scanner
 
-Applies 80+ regex patterns covering common secret formats (AWS keys, GitHub tokens, Stripe keys, JWT secrets, SSH private keys, database URIs, etc.) combined with Shannon entropy analysis to catch high-entropy strings that look like secrets even if they don't match a known pattern.
+Applies 80+ regex patterns covering AWS keys, GitHub tokens, Stripe keys, JWT secrets, SSH private keys, database URIs, and more. Shannon entropy analysis catches high-entropy strings that don't match a known pattern but look like secrets anyway.
 
-### 2. Dependency Scanner
+### 2. Dependency scanner
 
-Parses dependency manifests for all major package ecosystems and queries the [OSV.dev](https://osv.dev) API for known CVEs and security advisories. Returns per-package vulnerability details including CVSS score, affected version range, and fix version.
+Parses dependency manifests for all major package ecosystems and queries the [OSV.dev](https://osv.dev) API for known CVEs and security advisories. Returns per-package details including CVSS score, affected version range, and fix version.
 
 Supported ecosystems:
 
@@ -145,26 +144,26 @@ Supported ecosystems:
 | Go modules | `go.mod` |
 | PHP / Composer | `composer.json`, `composer.lock` |
 
-### 3. Static Analysis
+### 3. Static analysis
 
 Pattern-based scanner (no AST required) that detects insecure coding constructs across multiple languages, mapped to OWASP Top 10 categories:
 
-- **A01 Broken Access Control** — missing authorization checks, insecure direct object references
-- **A02 Cryptographic Failures** — use of MD5/SHA1, hardcoded IVs, weak ciphers
-- **A03 Injection** — SQL injection, LDAP injection, OS command injection, eval/exec on user input
-- **A04 Insecure Design** — debug flags left on, stack traces exposed to users
-- **A05 Security Misconfiguration** — `CORS *`, debug mode, verbose error messages
-- **A07 Auth Failures** — HTTP basic auth, JWT `none` algorithm, missing token validation
-- **A08 Software Integrity Failures** — `eval()`, `pickle.loads()`, `deserialize()`
-- **A10 SSRF** — unvalidated URL fetching with user-supplied input
+- **A01 Broken access control:** missing authorization checks, insecure direct object references
+- **A02 Cryptographic failures:** use of MD5/SHA1, hardcoded IVs, weak ciphers
+- **A03 Injection:** SQL injection, LDAP injection, OS command injection, eval/exec on user input
+- **A04 Insecure design:** debug flags left on, stack traces exposed to users
+- **A05 Security misconfiguration:** `CORS *`, debug mode, verbose error messages
+- **A07 Auth failures:** HTTP basic auth, JWT `none` algorithm, missing token validation
+- **A08 Software integrity failures:** `eval()`, `pickle.loads()`, `deserialize()`
+- **A10 SSRF:** unvalidated URL fetching with user-supplied input
 
-### 4. Git History Scanner
+### 4. Git history scanner
 
-Uses GitPython to iterate over every commit object in the repository. For each diff, it re-runs the secrets patterns against the added lines. This catches credentials that were committed by mistake and later removed — they remain accessible in git objects and must be considered permanently compromised.
+Uses GitPython to walk every commit in the repository. For each diff, it re-runs the secrets patterns against the added lines. This catches credentials that were committed by mistake and later removed. They remain accessible in git objects and should be treated as permanently compromised.
 
-### 5. AI Deep Analysis
+### 5. AI deep analysis
 
-After the automated scans, you can select any source files and send them to an AI provider for a holistic code review. The AI receives the file content alongside the automated findings for that file so it can provide richer context, explain the exploitability of each issue, and suggest concrete remediation steps.
+After the automated scans, pick any source files and send them to an AI provider for a full code review. The AI gets the file content plus the automated findings for that file, so it can explain exploitability and suggest specific fixes rather than generic advice.
 
 Supported models:
 
@@ -176,48 +175,43 @@ Supported models:
 
 ---
 
-## AI Provider Support
+## AI provider support
 
-API keys can be supplied in three ways (highest priority wins):
+Three ways to supply an API key (highest priority wins):
 
-1. **UI** — enter the key directly in the scan configuration panel; it is used for that session only and never stored on disk.
-2. **`.env` file** — copy `.env.example` to `.env` at the project root and fill in the relevant key(s).
-3. **Environment variables** — set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY` in your shell before starting the server.
+1. **UI:** enter the key in the scan panel; used for that session only, never written to disk.
+2. **`.env` file:** copy `.env.example` to `.env` at the project root and fill in the relevant key(s).
+3. **Environment variable:** set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY` before starting the server.
 
-No AI key is required to run the automated scanners — AI analysis is an optional enhancement step.
+No AI key required. The local scanners run fine without one.
 
 ---
 
-## Supported Languages
+## Supported languages
 
 The static and secrets scanners work on any text-based file. Language-aware pattern sets are included for:
 
-Python · JavaScript / TypeScript · Java · Go · Ruby · PHP · C / C++ · C# · Rust · Kotlin · Swift · Shell / Bash · Terraform · Kubernetes YAML · Dockerfile · SQL
+Python, JavaScript/TypeScript, Java, Go, Ruby, PHP, C/C++, C#, Rust, Kotlin, Swift, Shell/Bash, Terraform, Kubernetes YAML, Dockerfile, SQL
 
 ---
 
-## Output / Reports
+## Output and reports
 
-### Severity Levels
+### Severity levels
 
 | Level | Description |
 |-------|-------------|
-| **Critical** | Confirmed secrets or exploitable RCE / auth bypass vectors |
-| **High** | High-confidence vulnerability with likely exploitability |
+| **Critical** | Confirmed secrets or exploitable RCE/auth bypass |
+| **High** | High-confidence vulnerability, likely exploitable |
 | **Medium** | Probable issue requiring developer review |
 | **Low** | Hardening suggestion or low-likelihood finding |
-| **Info** | Informational — not a vulnerability, but worth noting |
+| **Info** | Not a vulnerability, but worth knowing |
 
-Each finding includes:
-- File path and line number
-- Matched pattern / rule name
-- Severity and confidence score
-- Description and remediation advice
-- (For dependencies) CVE ID, CVSS score, affected range, fix version
+Each finding includes file path and line number, matched pattern or rule name, severity and confidence score, description, and remediation advice. Dependency findings also include CVE ID, CVSS score, affected version range, and fix version.
 
 ### Export
 
-Click **Export JSON** on any completed scan to download the full result set. The JSON schema is stable and suitable for ingesting into SIEM tools, GitHub Actions annotations, or custom dashboards.
+Click **Export JSON** on any completed scan to download the full result set. The schema is stable and works well for GitHub Actions annotations, SIEM ingestion, or custom dashboards.
 
 ---
 
@@ -233,25 +227,21 @@ Click **Export JSON** on any completed scan to download the full result set. The
 |----------|---------|-------------|
 | `HOST` | `0.0.0.0` | Backend bind address |
 | `PORT` | `8000` | Backend port |
-| `MAX_CONCURRENT_SCANS` | `5` | Maximum simultaneous repository scans |
-| `OPENAI_API_KEY` | — | OpenAI API key |
-| `ANTHROPIC_API_KEY` | — | Anthropic API key |
-| `GEMINI_API_KEY` | — | Google Gemini API key |
+| `MAX_CONCURRENT_SCANS` | `5` | Maximum simultaneous scans |
+| `OPENAI_API_KEY` | - | OpenAI API key |
+| `ANTHROPIC_API_KEY` | - | Anthropic API key |
+| `GEMINI_API_KEY` | - | Google Gemini API key |
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please:
-
-1. Fork the repository and create a feature branch (`git checkout -b feat/my-feature`)
+1. Fork the repo and create a feature branch (`git checkout -b feat/my-feature`)
 2. Make your changes with tests where applicable
-3. Ensure the project starts cleanly with `start.sh` / `start.bat`
-4. Open a pull request with a clear description of what was changed and why
+3. Make sure the project starts cleanly with `start.sh` / `start.bat`
+4. Open a pull request describing what changed and why
 
-For new scanner rules, add them to the appropriate file in `backend/scanners/` and include at least one positive and one negative test case.
-
-For bug reports or feature requests, open a GitHub issue.
+For new scanner rules, add them to the relevant file in `backend/scanners/` and include at least one positive and one negative test case. Bug reports and feature requests go in GitHub issues.
 
 ---
 
